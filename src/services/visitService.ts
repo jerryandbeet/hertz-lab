@@ -1,16 +1,36 @@
-// Real-time Global & Persistent Visit Counter for Hertz Application
-// Connects to global cloud key-value store for live tracking across all hosted users
+// Official Firebase Realtime Database Telemetry Service for Hertz Application
+// Tracks genuine live online users (via WebSockets Presence) and persistent all-time visits
+
+import { initializeApp, getApps } from 'firebase/app';
+import { 
+  getDatabase, 
+  ref, 
+  onValue, 
+  push, 
+  set, 
+  onDisconnect, 
+  runTransaction,
+  serverTimestamp 
+} from 'firebase/database';
 
 export interface LiveStats {
   totalVisitors: number;
   onlineUsers: number;
 }
 
-const STORAGE_KEY_TOTAL = 'hertz_persisted_visitors';
-const STORAGE_KEY_SESSION_SEEN = 'hertz_session_counted';
+const firebaseConfig = {
+  apiKey: "AIzaSyAm_qS9eAzpue_m05QXo8W9aTcJy3G_lWo",
+  authDomain: "hertz-63076.firebaseapp.com",
+  databaseURL: "https://hertz-63076-default-rtdb.firebaseio.com",
+  projectId: "hertz-63076",
+  storageBucket: "hertz-63076.firebasestorage.app",
+  messagingSenderId: "60721500063",
+  appId: "1:60721500063:web:e3a973326d7604991f37aa",
+  measurementId: "G-KEYT2W6NM7"
+};
 
 let currentStats: LiveStats = {
-  totalVisitors: 1248,
+  totalVisitors: 1,
   onlineUsers: 1
 };
 
@@ -20,45 +40,65 @@ function notify() {
   listeners.forEach(cb => cb({ ...currentStats }));
 }
 
-// Global Counter API endpoint
-const NAMESPACE = 'hertz_multimedia_lab_official';
-const KEY_VISITS = 'site_visits';
+let isInitialized = false;
 
 export async function initRealtimeStats(): Promise<void> {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isInitialized) return;
+  isInitialized = true;
 
-  // 1. Load local baseline
-  const savedTotal = localStorage.getItem(STORAGE_KEY_TOTAL);
-  if (savedTotal) {
-    currentStats.totalVisitors = Math.max(currentStats.totalVisitors, parseInt(savedTotal, 10));
-  }
-
-  // Calculate local concurrent tabs/windows via BroadcastChannel
   try {
-    const channel = new BroadcastChannel('hertz_presence');
-    let tabCount = 1;
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    const db = getDatabase(app);
 
-    channel.onmessage = (e) => {
-      if (e.data === 'ping') {
-        channel.postMessage('pong');
-      } else if (e.data === 'pong') {
-        tabCount++;
-        currentStats.onlineUsers = Math.max(1, tabCount);
+    // 1. Genuine Presence System: listen to Firebase .info/connected
+    const connectedRef = ref(db, '.info/connected');
+    const onlineUsersRef = ref(db, 'presence');
+
+    onValue(connectedRef, (snap) => {
+      if (snap.val() === true) {
+        // Current tab is connected - register presence node
+        const myPresenceRef = push(onlineUsersRef);
+
+        // When user closes tab, navigates away, or loses connection, remove immediately
+        onDisconnect(myPresenceRef).remove();
+
+        set(myPresenceRef, {
+          joinedAt: serverTimestamp()
+        }).catch(() => {});
+      }
+    });
+
+    // Subscribe to genuine concurrent online user count
+    onValue(onlineUsersRef, (snapshot) => {
+      const count = snapshot.size;
+      currentStats.onlineUsers = Math.max(1, count);
+      notify();
+    });
+
+    // 2. Genuine All-time Unique Visit Counter
+    const totalRef = ref(db, 'stats/totalVisits');
+    const SESSION_VISIT_KEY = 'hertz_session_visit_counted';
+
+    if (!sessionStorage.getItem(SESSION_VISIT_KEY)) {
+      sessionStorage.setItem(SESSION_VISIT_KEY, '1');
+      runTransaction(totalRef, (currentVal) => {
+        return (currentVal || 0) + 1;
+      }).catch((err) => {
+        console.warn('Transaction visit count update:', err);
+      });
+    }
+
+    // Subscribe to total visits count
+    onValue(totalRef, (snapshot) => {
+      const val = snapshot.val();
+      if (typeof val === 'number' && val > 0) {
+        currentStats.totalVisitors = val;
         notify();
       }
-    };
-    channel.postMessage('ping');
-  } catch {}
+    });
 
-  notify();
-
-  // 2. Local session & persistent counter (network requests to counterapi disabled to eliminate HTTP 410 errors)
-  const alreadyCountedInSession = sessionStorage.getItem(STORAGE_KEY_SESSION_SEEN);
-  if (!alreadyCountedInSession) {
-    currentStats.totalVisitors += 1;
-    localStorage.setItem(STORAGE_KEY_TOTAL, currentStats.totalVisitors.toString());
-    sessionStorage.setItem(STORAGE_KEY_SESSION_SEEN, '1');
-    notify();
+  } catch (err) {
+    console.error('Firebase realtime stats initialization error:', err);
   }
 }
 
