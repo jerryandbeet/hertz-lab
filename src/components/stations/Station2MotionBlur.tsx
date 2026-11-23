@@ -113,10 +113,11 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
         ctx.save();
         ctx.globalAlpha = alpha;
 
-        // If simulated blur is active, apply horizontal shadow/blur
+        // True optical motion blur for the entire shuttle including interior text and zebra stripes
         if (!isSharp && blurPx > 0) {
-          ctx.shadowColor = 'rgba(37, 99, 235, 0.5)';
-          ctx.shadowBlur = blurPx;
+          ctx.filter = `blur(${Math.min(9, Math.max(2.5, blurPx * 0.35))}px)`;
+        } else {
+          ctx.filter = 'none';
         }
 
         // --- Rocket Exhaust Plume (Left of tail) ---
@@ -245,17 +246,17 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
         ctx.fillRect(x - 56, y - 3, 6, 6);
         ctx.fillRect(x - 55, y + 5, 5, 5);
 
-        // High-contrast test markings on fuselage: HERTZ • SHUTTLE
+        // High-contrast test markings on fuselage
         ctx.fillStyle = isSharp ? '#064e3b' : '#1e3a8a';
-        ctx.font = 'bold 9px ui-monospace, SFMono-Regular, monospace';
+        ctx.font = 'bold 9.5px ui-monospace, SFMono-Regular, monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('HERTZ SHUTTLE', x - 5, y + 3);
+        ctx.fillText(isSharp ? 'HERTZ • 100% SHARP' : 'HERTZ • BLURRED', x - 5, y + 3);
 
-        // High frequency micro-bars on payload bay (for instant optical blur detection)
+        // High frequency micro-bars on payload bay (optical resolution target)
         const barY = y - 9;
-        for (let b = -7; b <= 7; b++) {
-          ctx.fillStyle = b % 2 === 0 ? (isSharp ? '#047857' : '#1d4ed8') : '#cbd5e1';
-          ctx.fillRect(x + b * 4, barY, 2.5, 3);
+        for (let b = -8; b <= 8; b++) {
+          ctx.fillStyle = b % 2 === 0 ? (isSharp ? '#022c22' : '#0f172a') : '#ffffff';
+          ctx.fillRect(x + b * 4, barY, 2.5, 3.5);
         }
 
         ctx.restore();
@@ -268,26 +269,27 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
 
       if (state.viewMode === 'split') {
         // --- TOP LANE: Sample-and-Hold Blur (Eye tracking retinal smear simulation) ---
-        const steps = 14;
-        for (let i = steps; i >= 1; i--) {
-          const smearX = currentX - (i * smearDist) / steps;
-          const ghostAlpha = 0.08 * (1 - i / steps);
-          drawObject(smearX, topY, ghostAlpha, false, smearDist * 0.4);
+        // Smeared across the horizontal tracking interval with optical filtering
+        const blurRadius = Math.max(3, Math.min(10, smearDist * 0.25));
+        const smearSteps = 8;
+        const spread = smearDist * 0.85;
+        for (let i = 0; i < smearSteps; i++) {
+          const smearX = currentX - (i / (smearSteps - 1)) * spread;
+          drawObject(smearX, topY, 0.28, false, blurRadius);
         }
-        drawObject(currentX, topY, 0.85, false, smearDist * 0.2);
 
         // --- BOTTOM LANE: BFI / Strobed Backlight (Pin-sharp readability) ---
         drawObject(currentX, bottomY, 1.0, true, 0);
 
       } else if (state.viewMode === 'sample-and-hold') {
         // Full screen Sample-and-Hold
-        const steps = 14;
-        for (let i = steps; i >= 1; i--) {
-          const smearX = currentX - (i * smearDist) / steps;
-          const ghostAlpha = 0.08 * (1 - i / steps);
-          drawObject(smearX, h * 0.5, ghostAlpha, false, smearDist * 0.4);
+        const blurRadius = Math.max(3, Math.min(10, smearDist * 0.25));
+        const smearSteps = 8;
+        const spread = smearDist * 0.85;
+        for (let i = 0; i < smearSteps; i++) {
+          const smearX = currentX - (i / (smearSteps - 1)) * spread;
+          drawObject(smearX, h * 0.5, 0.28, false, blurRadius);
         }
-        drawObject(currentX, h * 0.5, 0.85, false, smearDist * 0.2);
 
       } else if (state.viewMode === 'bfi') {
         // Full screen BFI Strobe (100% sharp)
@@ -295,10 +297,10 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
 
       } else if (state.viewMode === 'camera-blur') {
         // Camera Optical Shutter Blur (Linear motion trail)
-        const steps = 16;
+        const steps = 14;
         for (let i = 0; i < steps; i++) {
-          const trailX = currentX - (i / steps) * smearDist * 1.5;
-          drawObject(trailX, h * 0.5, 1 / steps, false, 0);
+          const trailX = currentX - (i / (steps - 1)) * smearDist * 1.4;
+          drawObject(trailX, h * 0.5, 0.25, false, 2.5);
         }
       }
 
