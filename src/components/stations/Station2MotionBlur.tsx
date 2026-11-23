@@ -8,6 +8,179 @@ interface Props {
   calibratedHz?: number | null;
 }
 
+// Pre-render cached sprite buffers once so the 60fps render loop never stalls on filter allocations
+function renderShuttleSprites(calibratedHz: number, blurIntensity: number) {
+  const spriteW = 220;
+  const spriteH = 110;
+  const cx = 95;
+  const cy = 55;
+
+  const drawShuttleGeometry = (ctx: CanvasRenderingContext2D, x: number, y: number, isSharp: boolean) => {
+    // --- Rocket Exhaust Plume (Left of tail) ---
+    const plumeColor = isSharp ? 'rgba(16, 185, 129, 0.85)' : 'rgba(59, 130, 246, 0.85)';
+    const plumeLength = 32;
+
+    ctx.fillStyle = plumeColor;
+    ctx.beginPath();
+    ctx.moveTo(x - 52, y - 8);
+    ctx.lineTo(x - 52 - plumeLength, y - 8);
+    ctx.lineTo(x - 52, y - 4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = isSharp ? '#34d399' : '#93c5fd';
+    ctx.beginPath();
+    ctx.moveTo(x - 52, y - 3);
+    ctx.lineTo(x - 52 - plumeLength * 1.3, y);
+    ctx.lineTo(x - 52, y + 3);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = plumeColor;
+    ctx.beginPath();
+    ctx.moveTo(x - 52, y + 4);
+    ctx.lineTo(x - 52 - plumeLength, y + 8);
+    ctx.lineTo(x - 52, y + 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // --- Delta Wings ---
+    ctx.fillStyle = isSharp ? '#047857' : '#1e3a8a';
+    ctx.beginPath();
+    ctx.moveTo(x - 20, y - 10);
+    ctx.lineTo(x - 48, y - 36);
+    ctx.lineTo(x - 44, y - 38);
+    ctx.lineTo(x + 10, y - 12);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(x - 20, y + 10);
+    ctx.lineTo(x - 48, y + 36);
+    ctx.lineTo(x - 44, y + 38);
+    ctx.lineTo(x + 10, y + 12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Black thermal tiles
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(x + 10, y - 12);
+    ctx.lineTo(x - 44, y - 38);
+    ctx.lineTo(x - 40, y - 36);
+    ctx.lineTo(x + 6, y - 10);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(x + 10, y + 12);
+    ctx.lineTo(x - 44, y + 38);
+    ctx.lineTo(x - 40, y + 36);
+    ctx.lineTo(x + 6, y + 10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Navigation lights
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(x - 46, y - 37, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(x - 46, y + 37, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main Fuselage
+    ctx.fillStyle = isSharp ? '#f8fafc' : '#f1f5f9';
+    ctx.beginPath();
+    ctx.moveTo(x + 55, y);
+    ctx.bezierCurveTo(x + 40, y - 11, x + 15, y - 14, x - 50, y - 14);
+    ctx.lineTo(x - 52, y + 14);
+    ctx.bezierCurveTo(x + 15, y + 14, x + 40, y + 11, x + 55, y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = isSharp ? '#059669' : '#2563eb';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Nose cap
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(x + 55, y);
+    ctx.bezierCurveTo(x + 48, y - 5, x + 44, y - 7, x + 40, y - 7);
+    ctx.lineTo(x + 40, y + 7);
+    ctx.bezierCurveTo(x + 44, y + 7, x + 48, y + 5, x + 55, y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cockpit
+    ctx.fillStyle = isSharp ? '#6ee7b7' : '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(x + 36, y - 2);
+    ctx.lineTo(x + 30, y - 6);
+    ctx.lineTo(x + 28, y - 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + 36, y + 2);
+    ctx.lineTo(x + 30, y + 6);
+    ctx.lineTo(x + 28, y + 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Engine nozzles
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(x - 55, y - 10, 5, 5);
+    ctx.fillRect(x - 56, y - 3, 6, 6);
+    ctx.fillRect(x - 55, y + 5, 5, 5);
+
+    // High contrast text
+    ctx.fillStyle = isSharp ? '#064e3b' : '#1e3a8a';
+    ctx.font = 'bold 9.5px ui-monospace, SFMono-Regular, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(isSharp ? 'HERTZ • 100% SHARP' : 'HERTZ • BLURRED', x - 5, y + 3);
+
+    // High frequency micro-bars (optical resolution target)
+    const barY = y - 9;
+    for (let b = -8; b <= 8; b++) {
+      ctx.fillStyle = b % 2 === 0 ? (isSharp ? '#022c22' : '#0f172a') : '#ffffff';
+      ctx.fillRect(x + b * 4, barY, 2.5, 3.5);
+    }
+  };
+
+  // Sharp canvas (BFI)
+  const sharp = document.createElement('canvas');
+  sharp.width = spriteW;
+  sharp.height = spriteH;
+  const sCtx = sharp.getContext('2d');
+  if (sCtx) {
+    drawShuttleGeometry(sCtx, cx, cy, true);
+  }
+
+  // Pre-rendered Blurred Canvas (Sample-and-Hold)
+  const blurBase = document.createElement('canvas');
+  blurBase.width = spriteW;
+  blurBase.height = spriteH;
+  const bCtx = blurBase.getContext('2d');
+  if (bCtx) {
+    drawShuttleGeometry(bCtx, cx, cy, false);
+  }
+
+  const blur = document.createElement('canvas');
+  blur.width = spriteW;
+  blur.height = spriteH;
+  const hCtx = blur.getContext('2d');
+  if (hCtx) {
+    const radius = Math.min(8, Math.max(3, blurIntensity * 2.5));
+    hCtx.filter = `blur(${radius}px)`;
+    hCtx.drawImage(blurBase, 0, 0);
+  }
+
+  return { sharp, blur, cx, cy };
+}
+
 export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibratedHz }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,6 +189,7 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
 
   const animIdRef = useRef<number | null>(null);
   const renderRef = useRef<((now: number) => void) | null>(null);
+  const spritesRef = useRef<ReturnType<typeof renderShuttleSprites> | null>(null);
 
   const [speed, setSpeed] = useState<number>(750); // pixels per sec
   const [viewMode, setViewMode] = useState<'split' | 'sample-and-hold' | 'bfi' | 'camera-blur'>('split');
@@ -32,6 +206,11 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
     xPos: 0,
     lastTime: 0
   });
+
+  // Re-generate sprite buffer only when calibration or intensity slider changes
+  useEffect(() => {
+    spritesRef.current = renderShuttleSprites(calibratedHz || 60, blurIntensity);
+  }, [calibratedHz, blurIntensity]);
 
   useEffect(() => {
     stateRef.current.speed = speed;
@@ -102,207 +281,55 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
       ctx.lineTo(w, h / 2);
       ctx.stroke();
 
-      // Space Shuttle Renderer Function
-      const drawObject = (
-        x: number, 
-        y: number, 
-        alpha: number, 
-        isSharp: boolean, 
-        blurPx: number = 0
-      ) => {
-        ctx.save();
-        ctx.globalAlpha = alpha;
-
-        // True optical motion blur for the entire shuttle including interior text and zebra stripes
-        if (!isSharp && blurPx > 0) {
-          ctx.filter = `blur(${Math.min(9, Math.max(2.5, blurPx * 0.35))}px)`;
-        } else {
-          ctx.filter = 'none';
-        }
-
-        // --- Rocket Exhaust Plume (Left of tail) ---
-        const plumeColor = isSharp ? 'rgba(16, 185, 129, 0.85)' : 'rgba(59, 130, 246, 0.85)';
-        const plumeLength = 32 + (isSharp ? Math.random() * 6 : 4);
-        
-        ctx.fillStyle = plumeColor;
-        // Top thruster plume
-        ctx.beginPath();
-        ctx.moveTo(x - 52, y - 8);
-        ctx.lineTo(x - 52 - plumeLength, y - 8);
-        ctx.lineTo(x - 52, y - 4);
-        ctx.closePath();
-        ctx.fill();
-
-        // Center main thruster plume (larger)
-        ctx.fillStyle = isSharp ? '#34d399' : '#93c5fd';
-        ctx.beginPath();
-        ctx.moveTo(x - 52, y - 3);
-        ctx.lineTo(x - 52 - plumeLength * 1.3, y);
-        ctx.lineTo(x - 52, y + 3);
-        ctx.closePath();
-        ctx.fill();
-
-        // Bottom thruster plume
-        ctx.fillStyle = plumeColor;
-        ctx.beginPath();
-        ctx.moveTo(x - 52, y + 4);
-        ctx.lineTo(x - 52 - plumeLength, y + 8);
-        ctx.lineTo(x - 52, y + 8);
-        ctx.closePath();
-        ctx.fill();
-
-        // --- Delta Wings (Top & Bottom Wingtips) ---
-        // Upper Wing
-        ctx.fillStyle = isSharp ? '#047857' : '#1e3a8a';
-        ctx.beginPath();
-        ctx.moveTo(x - 20, y - 10);
-        ctx.lineTo(x - 48, y - 36); // Wingtip rear
-        ctx.lineTo(x - 44, y - 38);
-        ctx.lineTo(x + 10, y - 12); // Wing root front
-        ctx.closePath();
-        ctx.fill();
-
-        // Lower Wing
-        ctx.beginPath();
-        ctx.moveTo(x - 20, y + 10);
-        ctx.lineTo(x - 48, y + 36); // Wingtip rear
-        ctx.lineTo(x - 44, y + 38);
-        ctx.lineTo(x + 10, y + 12); // Wing root front
-        ctx.closePath();
-        ctx.fill();
-
-        // Black thermal tile leading edge on wings
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.moveTo(x + 10, y - 12);
-        ctx.lineTo(x - 44, y - 38);
-        ctx.lineTo(x - 40, y - 36);
-        ctx.lineTo(x + 6, y - 10);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(x + 10, y + 12);
-        ctx.lineTo(x - 44, y + 38);
-        ctx.lineTo(x - 40, y + 36);
-        ctx.lineTo(x + 6, y + 10);
-        ctx.closePath();
-        ctx.fill();
-
-        // Wingtip navigation lights
-        ctx.fillStyle = '#ef4444'; // Red (Port)
-        ctx.beginPath();
-        ctx.arc(x - 46, y - 37, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#10b981'; // Green (Starboard)
-        ctx.beginPath();
-        ctx.arc(x - 46, y + 37, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        // --- Main Shuttle Fuselage ---
-        ctx.fillStyle = isSharp ? '#f8fafc' : '#f1f5f9';
-        ctx.beginPath();
-        ctx.moveTo(x + 55, y); // Nose tip
-        ctx.bezierCurveTo(x + 40, y - 11, x + 15, y - 14, x - 50, y - 14); // Upper fuselage
-        ctx.lineTo(x - 52, y + 14); // Aft engine mount
-        ctx.bezierCurveTo(x + 15, y + 14, x + 40, y + 11, x + 55, y); // Lower fuselage
-        ctx.closePath();
-        ctx.fill();
-
-        // Outline / trim
-        ctx.strokeStyle = isSharp ? '#059669' : '#2563eb';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Black thermal protection nose cap
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.moveTo(x + 55, y);
-        ctx.bezierCurveTo(x + 48, y - 5, x + 44, y - 7, x + 40, y - 7);
-        ctx.lineTo(x + 40, y + 7);
-        ctx.bezierCurveTo(x + 44, y + 7, x + 48, y + 5, x + 55, y);
-        ctx.closePath();
-        ctx.fill();
-
-        // Cockpit cabin windshield (Dark glass panels)
-        ctx.fillStyle = isSharp ? '#6ee7b7' : '#38bdf8';
-        ctx.beginPath();
-        ctx.moveTo(x + 36, y - 2);
-        ctx.lineTo(x + 30, y - 6);
-        ctx.lineTo(x + 28, y - 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x + 36, y + 2);
-        ctx.lineTo(x + 30, y + 6);
-        ctx.lineTo(x + 28, y + 2);
-        ctx.closePath();
-        ctx.fill();
-
-        // Rocket engine nozzles (SSME)
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(x - 55, y - 10, 5, 5);
-        ctx.fillRect(x - 56, y - 3, 6, 6);
-        ctx.fillRect(x - 55, y + 5, 5, 5);
-
-        // High-contrast test markings on fuselage
-        ctx.fillStyle = isSharp ? '#064e3b' : '#1e3a8a';
-        ctx.font = 'bold 9.5px ui-monospace, SFMono-Regular, monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(isSharp ? 'HERTZ • 100% SHARP' : 'HERTZ • BLURRED', x - 5, y + 3);
-
-        // High frequency micro-bars on payload bay (optical resolution target)
-        const barY = y - 9;
-        for (let b = -8; b <= 8; b++) {
-          ctx.fillStyle = b % 2 === 0 ? (isSharp ? '#022c22' : '#0f172a') : '#ffffff';
-          ctx.fillRect(x + b * 4, barY, 2.5, 3.5);
-        }
-
-        ctx.restore();
-      };
+      // Fast GPU Texture Blit using pre-rendered sprites
+      if (!spritesRef.current) {
+        spritesRef.current = renderShuttleSprites(state.calibratedHz, state.blurIntensity);
+      }
+      const sprites = spritesRef.current;
 
       const topY = h * 0.25;
       const bottomY = h * 0.75;
 
       const smearDist = (state.speed / 60) * 1.8 * state.blurIntensity;
+      const spread = Math.min(60, smearDist * 0.85);
 
       if (state.viewMode === 'split') {
-        // --- TOP LANE: Sample-and-Hold Blur (Eye tracking retinal smear simulation) ---
-        // Smeared across the horizontal tracking interval with optical filtering
-        const blurRadius = Math.max(3, Math.min(10, smearDist * 0.25));
-        const smearSteps = 8;
-        const spread = smearDist * 0.85;
+        // --- TOP LANE: Sample-and-Hold Blur (GPU Texture blit with horizontal spread) ---
+        const smearSteps = 4;
         for (let i = 0; i < smearSteps; i++) {
           const smearX = currentX - (i / (smearSteps - 1)) * spread;
-          drawObject(smearX, topY, 0.28, false, blurRadius);
+          ctx.globalAlpha = 0.38;
+          ctx.drawImage(sprites.blur, smearX - sprites.cx, topY - sprites.cy);
         }
 
-        // --- BOTTOM LANE: BFI / Strobed Backlight (Pin-sharp readability) ---
-        drawObject(currentX, bottomY, 1.0, true, 0);
+        // --- BOTTOM LANE: BFI / Strobed Backlight (Pin-sharp 100% texture blit) ---
+        ctx.globalAlpha = 1.0;
+        ctx.drawImage(sprites.sharp, currentX - sprites.cx, bottomY - sprites.cy);
 
       } else if (state.viewMode === 'sample-and-hold') {
         // Full screen Sample-and-Hold
-        const blurRadius = Math.max(3, Math.min(10, smearDist * 0.25));
-        const smearSteps = 8;
-        const spread = smearDist * 0.85;
+        const smearSteps = 4;
         for (let i = 0; i < smearSteps; i++) {
           const smearX = currentX - (i / (smearSteps - 1)) * spread;
-          drawObject(smearX, h * 0.5, 0.28, false, blurRadius);
+          ctx.globalAlpha = 0.38;
+          ctx.drawImage(sprites.blur, smearX - sprites.cx, h * 0.5 - sprites.cy);
         }
 
       } else if (state.viewMode === 'bfi') {
         // Full screen BFI Strobe (100% sharp)
-        drawObject(currentX, h * 0.5, 1.0, true, 0);
+        ctx.globalAlpha = 1.0;
+        ctx.drawImage(sprites.sharp, currentX - sprites.cx, h * 0.5 - sprites.cy);
 
       } else if (state.viewMode === 'camera-blur') {
-        // Camera Optical Shutter Blur (Linear motion trail)
-        const steps = 14;
+        // Camera Optical Shutter Blur
+        const steps = 6;
         for (let i = 0; i < steps; i++) {
-          const trailX = currentX - (i / (steps - 1)) * smearDist * 1.4;
-          drawObject(trailX, h * 0.5, 0.25, false, 2.5);
+          const trailX = currentX - (i / (steps - 1)) * spread * 1.5;
+          ctx.globalAlpha = 0.25;
+          ctx.drawImage(sprites.blur, trailX - sprites.cx, h * 0.5 - sprites.cy);
         }
       }
+      ctx.globalAlpha = 1.0;
 
       animIdRef.current = requestAnimationFrame(render);
     };
