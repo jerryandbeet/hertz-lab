@@ -150,35 +150,25 @@ function renderShuttleSprites(calibratedHz: number, blurIntensity: number) {
     }
   };
 
-  // Sharp canvas (BFI)
-  const sharp = document.createElement('canvas');
-  sharp.width = spriteW;
-  sharp.height = spriteH;
-  const sCtx = sharp.getContext('2d');
-  if (sCtx) {
-    drawShuttleGeometry(sCtx, cx, cy, true);
+  // Green Sharp Shuttle Canvas (BFI Strobe Mode)
+  const green = document.createElement('canvas');
+  green.width = spriteW;
+  green.height = spriteH;
+  const gCtx = green.getContext('2d');
+  if (gCtx) {
+    drawShuttleGeometry(gCtx, cx, cy, true);
   }
 
-  // Pre-rendered Blurred Canvas (Sample-and-Hold)
-  const blurBase = document.createElement('canvas');
-  blurBase.width = spriteW;
-  blurBase.height = spriteH;
-  const bCtx = blurBase.getContext('2d');
+  // Blue Shuttle Canvas (Sample-and-Hold Mode)
+  const blue = document.createElement('canvas');
+  blue.width = spriteW;
+  blue.height = spriteH;
+  const bCtx = blue.getContext('2d');
   if (bCtx) {
     drawShuttleGeometry(bCtx, cx, cy, false);
   }
 
-  const blur = document.createElement('canvas');
-  blur.width = spriteW;
-  blur.height = spriteH;
-  const hCtx = blur.getContext('2d');
-  if (hCtx) {
-    const radius = Math.min(8, Math.max(3, blurIntensity * 2.5));
-    hCtx.filter = `blur(${radius}px)`;
-    hCtx.drawImage(blurBase, 0, 0);
-  }
-
-  return { sharp, blur, cx, cy };
+  return { green, blue, cx, cy };
 }
 
 export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibratedHz }) => {
@@ -294,39 +284,45 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
       const spread = Math.min(60, smearDist * 0.85);
 
       if (state.viewMode === 'split') {
-        // --- TOP LANE: Sample-and-Hold Blur (GPU Texture blit with horizontal spread) ---
-        const smearSteps = 4;
-        for (let i = 0; i < smearSteps; i++) {
-          const smearX = currentX - (i / (smearSteps - 1)) * spread;
-          ctx.globalAlpha = 0.38;
-          ctx.drawImage(sprites.blur, smearX - sprites.cx, topY - sprites.cy);
+        // --- TOP LANE: Sample-and-Hold Blur (Physical directional horizontal accumulation) ---
+        const smearSteps = 12;
+        for (let i = smearSteps; i >= 1; i--) {
+          const smearX = currentX - (i * smearDist) / smearSteps;
+          const ghostAlpha = 0.08 * (1 - i / smearSteps);
+          ctx.globalAlpha = ghostAlpha;
+          ctx.drawImage(sprites.blue, smearX - sprites.cx, topY - sprites.cy);
         }
+        ctx.globalAlpha = 0.88;
+        ctx.drawImage(sprites.blue, currentX - sprites.cx, topY - sprites.cy);
 
-        // --- BOTTOM LANE: BFI / Strobed Backlight (Pin-sharp 100% texture blit) ---
+        // --- BOTTOM LANE: BFI / Strobed Backlight (Zero horizontal smear, 100% sharp single pulse) ---
         ctx.globalAlpha = 1.0;
-        ctx.drawImage(sprites.sharp, currentX - sprites.cx, bottomY - sprites.cy);
+        ctx.drawImage(sprites.green, currentX - sprites.cx, bottomY - sprites.cy);
 
       } else if (state.viewMode === 'sample-and-hold') {
         // Full screen Sample-and-Hold
-        const smearSteps = 4;
-        for (let i = 0; i < smearSteps; i++) {
-          const smearX = currentX - (i / (smearSteps - 1)) * spread;
-          ctx.globalAlpha = 0.38;
-          ctx.drawImage(sprites.blur, smearX - sprites.cx, h * 0.5 - sprites.cy);
+        const smearSteps = 12;
+        for (let i = smearSteps; i >= 1; i--) {
+          const smearX = currentX - (i * smearDist) / smearSteps;
+          const ghostAlpha = 0.08 * (1 - i / smearSteps);
+          ctx.globalAlpha = ghostAlpha;
+          ctx.drawImage(sprites.blue, smearX - sprites.cx, h * 0.5 - sprites.cy);
         }
+        ctx.globalAlpha = 0.88;
+        ctx.drawImage(sprites.blue, currentX - sprites.cx, h * 0.5 - sprites.cy);
 
       } else if (state.viewMode === 'bfi') {
-        // Full screen BFI Strobe (100% sharp)
+        // Full screen BFI Strobe (100% sharp single pulse)
         ctx.globalAlpha = 1.0;
-        ctx.drawImage(sprites.sharp, currentX - sprites.cx, h * 0.5 - sprites.cy);
+        ctx.drawImage(sprites.green, currentX - sprites.cx, h * 0.5 - sprites.cy);
 
       } else if (state.viewMode === 'camera-blur') {
-        // Camera Optical Shutter Blur
-        const steps = 6;
+        // Camera Optical Shutter Blur (Linear motion integration across exposure time)
+        const steps = 14;
         for (let i = 0; i < steps; i++) {
-          const trailX = currentX - (i / (steps - 1)) * spread * 1.5;
-          ctx.globalAlpha = 0.25;
-          ctx.drawImage(sprites.blur, trailX - sprites.cx, h * 0.5 - sprites.cy);
+          const trailX = currentX - (i / steps) * smearDist * 1.3;
+          ctx.globalAlpha = 1.0 / steps;
+          ctx.drawImage(sprites.blue, trailX - sprites.cx, h * 0.5 - sprites.cy);
         }
       }
       ctx.globalAlpha = 1.0;
