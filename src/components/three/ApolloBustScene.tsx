@@ -53,24 +53,33 @@ export const ApolloBustScene: React.FC<Props> = ({
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Studio Lighting for Classical Sculpture
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
     keyLight.position.set(5, 6, 5);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.8);
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.6);
     rimLight.position.set(-5, -2, -3);
     scene.add(rimLight);
 
-    // Dynamic RGB studio lights
+    // Dynamic RGB studio lights with genuine shadow map passes
     const dynamicLights: THREE.PointLight[] = [];
-    const lightColors = [0x3b82f6, 0x10b981, 0x8b5cf6, 0xf59e0b, 0x06b6d4, 0xec4899];
-    for (let i = 0; i < 6; i++) {
-      const pl = new THREE.PointLight(lightColors[i], 1.5, 12);
+    const lightColors = [0x3b82f6, 0x10b981, 0x8b5cf6, 0xf59e0b, 0x06b6d4, 0xec4899, 0xf43f5e, 0x14b8a6];
+    for (let i = 0; i < 8; i++) {
+      const pl = new THREE.PointLight(lightColors[i % lightColors.length], 1.8, 14);
+      pl.castShadow = true;
+      pl.shadow.mapSize.width = 512;
+      pl.shadow.mapSize.height = 512;
+      pl.shadow.bias = -0.002;
       scene.add(pl);
       dynamicLights.push(pl);
     }
@@ -114,6 +123,8 @@ export const ApolloBustScene: React.FC<Props> = ({
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
             mesh.material = marbleMat;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
 
             // Subtle cyan wireframe overlay
             const wireGeo = new THREE.WireframeGeometry(mesh.geometry);
@@ -145,6 +156,8 @@ export const ApolloBustScene: React.FC<Props> = ({
             if ((child as THREE.Mesh).isMesh) {
               const mesh = child as THREE.Mesh;
               mesh.material = marbleMat;
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
               const wireGeo = new THREE.WireframeGeometry(mesh.geometry);
               const wireMat = new THREE.LineBasicMaterial({
                 color: 0x0ea5e9,
@@ -168,10 +181,11 @@ export const ApolloBustScene: React.FC<Props> = ({
     });
     const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
     pedestal.position.y = -1.45;
+    pedestal.receiveShadow = true;
     bustGroup.add(pedestal);
 
-    // 3. Surrounding Floating Stone & Marble Shards (InstancedMesh up to 15,000 shards!)
-    const MAX_SHARDS = 15000;
+    // 3. Surrounding Floating Stone & Marble Shards (InstancedMesh up to 25,000 shards)
+    const MAX_SHARDS = 25000;
     const shardGeo = new THREE.TetrahedronGeometry(0.12, 0);
     const shardMat = new THREE.MeshStandardMaterial({
       color: 0xe2e8f0,
@@ -181,22 +195,29 @@ export const ApolloBustScene: React.FC<Props> = ({
 
     const instancedShards = new THREE.InstancedMesh(shardGeo, shardMat, MAX_SHARDS);
     instancedShards.count = Math.min(MAX_SHARDS, Math.max(100, stateRef.current.shardCount));
+    instancedShards.castShadow = true;
+    instancedShards.receiveShadow = true;
     rootGroup.add(instancedShards);
 
     const dummy = new THREE.Object3D();
     const shardRadii: number[] = [];
     const shardSpeeds: number[] = [];
     const shardYOffs: number[] = [];
+    const shardInitialAngles: number[] = [];
+    const shardRotX: number[] = [];
+    const shardRotY: number[] = [];
+    const shardScales: number[] = [];
 
     for (let i = 0; i < MAX_SHARDS; i++) {
-      // Form an elliptical cloud surrounding Apollo in 3D space
       const radius = 2.0 + Math.random() * 4.5;
       const theta = Math.random() * Math.PI * 2;
       const y = (Math.random() - 0.5) * 5.0;
+      const rx = Math.random() * Math.PI;
+      const ry = Math.random() * Math.PI;
+      const s = 0.5 + Math.random() * 1.5;
 
       dummy.position.set(Math.cos(theta) * radius, y, Math.sin(theta) * radius);
-      dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-      const s = 0.5 + Math.random() * 1.5;
+      dummy.rotation.set(rx, ry, 0);
       dummy.scale.set(s, s, s);
       dummy.updateMatrix();
 
@@ -205,6 +226,10 @@ export const ApolloBustScene: React.FC<Props> = ({
       shardRadii.push(radius);
       shardSpeeds.push((Math.random() - 0.5) * 0.4);
       shardYOffs.push(y);
+      shardInitialAngles.push(theta);
+      shardRotX.push(rx);
+      shardRotY.push(ry);
+      shardScales.push(s);
     }
     instancedShards.instanceMatrix.needsUpdate = true;
 
@@ -228,20 +253,36 @@ export const ApolloBustScene: React.FC<Props> = ({
         return;
       }
 
+      const elapsed = clock.getElapsedTime();
       const { shardCount: targetShards, lightCount: targetLights, cpuLoadMs: targetCpu } = stateRef.current;
 
-      // Update shard count
-      instancedShards.count = Math.min(MAX_SHARDS, Math.max(100, targetShards));
+      // Update shard count and animate dynamic vortex matrix streaming
+      const activeShards = Math.min(MAX_SHARDS, Math.max(100, targetShards));
+      instancedShards.count = activeShards;
 
-      // Simulate artificial CPU main thread starvation
+      // Dynamic CPU-GPU buffer streaming: animate individual 3D shard transformations
+      const streamCount = Math.min(activeShards, 4000);
+      for (let i = 0; i < streamCount; i++) {
+        const theta = shardInitialAngles[i] + elapsed * shardSpeeds[i];
+        const r = shardRadii[i];
+        const y = shardYOffs[i] + Math.sin(elapsed * 1.5 + i * 0.1) * 0.15;
+        dummy.position.set(Math.cos(theta) * r, y, Math.sin(theta) * r);
+        dummy.rotation.set(shardRotX[i] + elapsed * 0.4, shardRotY[i] + elapsed * 0.6, 0);
+        const s = shardScales[i];
+        dummy.scale.set(s, s, s);
+        dummy.updateMatrix();
+        instancedShards.setMatrixAt(i, dummy.matrix);
+      }
+      instancedShards.instanceMatrix.needsUpdate = true;
+
+      // Simulate genuine CPU main thread compute load (causes controllable FPS drops)
       if (targetCpu > 0) {
         const start = performance.now();
         while (performance.now() - start < targetCpu) {
-          // Burn CPU
+          // Intense CPU math load
+          Math.sqrt(Math.random() * 10000);
         }
       }
-
-      const elapsed = clock.getElapsedTime();
 
       // Rotate bust gently
       bustGroup.rotation.y = elapsed * 0.35;
@@ -250,8 +291,8 @@ export const ApolloBustScene: React.FC<Props> = ({
       instancedShards.rotation.y = -elapsed * 0.15;
       instancedShards.rotation.x = Math.sin(elapsed * 0.2) * 0.1;
 
-      // Orbit dynamic studio lights
-      for (let i = 0; i < 6; i++) {
+      // Orbit dynamic shadow-casting studio lights
+      for (let i = 0; i < 8; i++) {
         const pl = dynamicLights[i];
         if (i < targetLights) {
           pl.visible = true;

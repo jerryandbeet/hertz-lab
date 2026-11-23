@@ -119,9 +119,9 @@ export const Station7BenchmarkSandbox: React.FC<Props> = ({ isActive = true, onC
   };
 
   // 3D Stress Sandbox state
-  const [polyCount, setPolyCount] = useState<number>(1200); // 200 to 15,000 floating stone shards
-  const [lightCount, setLightCount] = useState<number>(3); // 1 to 6
-  const [cpuLoadMs, setCpuLoadMs] = useState<number>(0); // 0 to 14 ms artificial loop
+  const [polyCount, setPolyCount] = useState<number>(1200); // 200 to 25,000 floating stone shards
+  const [lightCount, setLightCount] = useState<number>(3); // 1 to 8 dynamic shadow-casting lights
+  const [cpuLoadMs, setCpuLoadMs] = useState<number>(0); // 0 to 60 ms genuine thread load
 
   // Start precision hardware scan
   const handleStartScan = () => {
@@ -300,13 +300,13 @@ export const Station7BenchmarkSandbox: React.FC<Props> = ({ isActive = true, onC
             <input
               type="range"
               min="200"
-              max="15000"
-              step="200"
+              max="25000"
+              step="500"
               value={polyCount}
               onChange={(e) => {
                 const val = Number(e.target.value);
                 setPolyCount(val);
-                audio.playSliderTick((val - 200) / 14800);
+                audio.playSliderTick((val - 200) / 24800);
               }}
               className="w-full"
             />
@@ -324,13 +324,13 @@ export const Station7BenchmarkSandbox: React.FC<Props> = ({ isActive = true, onC
             <input
               type="range"
               min="1"
-              max="6"
+              max="8"
               step="1"
               value={lightCount}
               onChange={(e) => {
                 const val = Number(e.target.value);
                 setLightCount(val);
-                audio.playSliderTick((val - 1) / 5);
+                audio.playSliderTick((val - 1) / 7);
               }}
               className="w-full"
             />
@@ -348,13 +348,13 @@ export const Station7BenchmarkSandbox: React.FC<Props> = ({ isActive = true, onC
             <input
               type="range"
               min="0"
-              max="14"
-              step="1"
+              max="60"
+              step="2"
               value={cpuLoadMs}
               onChange={(e) => {
                 const val = Number(e.target.value);
                 setCpuLoadMs(val);
-                audio.playSliderTick(val / 14);
+                audio.playSliderTick(val / 60);
               }}
               className="w-full"
             />
