@@ -93,8 +93,12 @@ export const ApolloBustScene: React.FC<Props> = ({
 
     // 1. Classical Apollo Bust Model
     const loader = new GLTFLoader();
+    const base = import.meta.env.BASE_URL || './';
+    const cleanBase = base.endsWith('/') ? base : `${base}/`;
+    const modelUrl = `${cleanBase}models/head.glb`;
+
     loader.load(
-      '/models/head.glb',
+      modelUrl,
       (gltf) => {
         const model = gltf.scene;
         const box = new THREE.Box3().setFromObject(model);
@@ -126,7 +130,33 @@ export const ApolloBustScene: React.FC<Props> = ({
         bustGroup.add(model);
       },
       undefined,
-      (err) => console.error('Failed to load Apollo head model:', err)
+      (err) => {
+        console.error('Failed to load Apollo head model, trying bust.glb:', err);
+        loader.load(`${cleanBase}models/bust.glb`, (gltf2) => {
+          const model2 = gltf2.scene;
+          const box2 = new THREE.Box3().setFromObject(model2);
+          const center2 = box2.getCenter(new THREE.Vector3());
+          const size2 = box2.getSize(new THREE.Vector3());
+          const maxDim2 = Math.max(size2.x, size2.y, size2.z);
+          const scale2 = 2.9 / maxDim2;
+          model2.position.set(-center2.x * scale2, -center2.y * scale2 + 0.35, -center2.z * scale2);
+          model2.scale.set(scale2, scale2, scale2);
+          model2.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              mesh.material = marbleMat;
+              const wireGeo = new THREE.WireframeGeometry(mesh.geometry);
+              const wireMat = new THREE.LineBasicMaterial({
+                color: 0x0ea5e9,
+                transparent: true,
+                opacity: 0.2
+              });
+              mesh.add(new THREE.LineSegments(wireGeo, wireMat));
+            }
+          });
+          bustGroup.add(model2);
+        });
+      }
     );
 
     // 2. Matte Architectural Studio Pedestal (Zero glitched reflections)
