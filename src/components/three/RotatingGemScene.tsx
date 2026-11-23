@@ -408,7 +408,10 @@ export const RotatingGemScene: React.FC<Props> = ({
         className="absolute top-0 bottom-24 w-0.5 bg-blue-500 shadow-[0_0_12px_rgba(37,99,235,0.8)] z-10 pointer-events-none"
         style={{ left: `${splitPos}%` }}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white shadow-lg border-2 border-blue-500 flex items-center justify-center pointer-events-auto cursor-ew-resize hover:scale-110 active:scale-95 transition-transform">
+        <div 
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white shadow-lg border-2 border-blue-500 flex items-center justify-center pointer-events-auto cursor-ew-resize hover:scale-110 active:scale-95 transition-transform"
+          style={{ touchAction: 'none' }}
+        >
           <div className="flex gap-0.5 pointer-events-none">
             <span className="w-0.5 h-3 bg-blue-500 rounded-full"></span>
             <span className="w-0.5 h-3 bg-blue-500 rounded-full"></span>
@@ -418,18 +421,18 @@ export const RotatingGemScene: React.FC<Props> = ({
 
       {/* Left side badge */}
       <div 
-        className="absolute top-3 left-3 z-10 glass-pill px-3 py-1 rounded-lg text-xs font-mono font-bold border border-slate-200 text-slate-800 shadow-sm pointer-events-none"
+        className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 glass-pill px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg text-[11px] sm:text-xs font-mono font-bold border border-slate-200 text-slate-800 shadow-sm pointer-events-none"
       >
-        Левая зона: <span className="text-blue-600">{fpsLeft} FPS</span>
-        <span className="ml-1 text-[10px] text-slate-400 font-normal">({(1000 / fpsLeft).toFixed(1)} мс)</span>
+        <span className="hidden sm:inline">Левая: </span><span className="text-blue-600">{fpsLeft} FPS</span>
+        <span className="ml-1 text-[10px] text-slate-400 font-normal">({(1000 / fpsLeft).toFixed(1)}ms)</span>
       </div>
 
       {/* Right side badge */}
       <div 
-        className="absolute top-3 right-3 z-10 glass-pill px-3 py-1 rounded-lg text-xs font-mono font-bold border border-slate-200 text-slate-800 shadow-sm pointer-events-none"
+        className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 glass-pill px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg text-[11px] sm:text-xs font-mono font-bold border border-slate-200 text-slate-800 shadow-sm pointer-events-none"
       >
-        Правая зона: <span className="text-emerald-600">{fpsRight >= 180 ? '180 FPS' : `${fpsRight} FPS`}</span>
-        <span className="ml-1 text-[10px] text-slate-400 font-normal">({(1000 / fpsRight).toFixed(1)} мс)</span>
+        <span className="hidden sm:inline">Правая: </span><span className="text-emerald-600">{fpsRight >= 180 ? '180 FPS' : `${fpsRight} FPS`}</span>
+        <span className="ml-1 text-[10px] text-slate-400 font-normal">({(1000 / fpsRight).toFixed(1)}ms)</span>
       </div>
 
       {/* Dynamic 2D Real-time UFO Test Strip (Dual-Lane Hardware-accurate sync) */}

@@ -53,8 +53,8 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
     return () => resizeObserver.disconnect();
   }, []);
 
-  // Mouse tracking inside arena with simulated polling rate and latency queue
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Pointer & Touch tracking inside arena with simulated polling rate and latency queue
+  const updatePointerPosition = (clientX: number, clientY: number) => {
     if (!arenaRef.current) return;
     const now = performance.now();
 
@@ -66,15 +66,31 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
     lastSampleTimeRef.current = now;
 
     const rect = arenaRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
 
     if (ghostRef.current) {
+      ghostRef.current.style.left = '0px';
+      ghostRef.current.style.top = '0px';
       ghostRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
       ghostRef.current.style.opacity = '1';
     }
 
+    if (cursorRef.current && cursorRef.current.style.opacity === '0') {
+      cursorRef.current.style.left = '0px';
+      cursorRef.current.style.top = '0px';
+      cursorRef.current.style.opacity = '1';
+    }
+
     mouseHistoryRef.current.push({ x, y, time: now });
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    updatePointerPosition(e.clientX, e.clientY);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    updatePointerPosition(e.clientX, e.clientY);
   };
 
   useEffect(() => {
@@ -219,29 +235,14 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
 
         <div
           ref={arenaRef}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={(e) => {
-            if (!arenaRef.current) return;
-            const rect = arenaRef.current.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            if (ghostRef.current) {
-              ghostRef.current.style.left = '0px';
-              ghostRef.current.style.top = '0px';
-              ghostRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-              ghostRef.current.style.opacity = '1';
-            }
-            if (cursorRef.current) {
-              cursorRef.current.style.left = '0px';
-              cursorRef.current.style.top = '0px';
-              cursorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-              cursorRef.current.style.opacity = '1';
-            }
-          }}
-          onMouseLeave={() => {
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerEnter={(e) => updatePointerPosition(e.clientX, e.clientY)}
+          onPointerLeave={() => {
             if (ghostRef.current) ghostRef.current.style.opacity = '0.35';
             if (cursorRef.current) cursorRef.current.style.opacity = '0.75';
           }}
+          style={{ touchAction: 'none' }}
           className="relative w-full h-[280px] bg-slate-900/5 rounded-2xl border border-slate-200 overflow-hidden cursor-none shadow-inner flex flex-col items-center justify-center select-none"
         >
           {/* Background grid */}
@@ -326,10 +327,10 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
             </div>
             <div className="flex flex-wrap gap-2">
               {[
-                { hz: 125, label: '125 Гц (8.0 мс • Офисная мышь)', note: 'Рывки курсора' },
-                { hz: 500, label: '500 Гц (2.0 мс)', note: 'Хорошо' },
-                { hz: 1000, label: '1000 Гц (1.0 мс • Киберспорт)', note: 'Стандарт' },
-                { hz: 8000, label: '8000 Гц (0.125 мс • Ultra)', note: 'Сверхплавно' },
+                { hz: 125, labelShort: '125 Гц', labelFull: '125 Гц (8.0 мс • Офис)', note: 'Рывки курсора' },
+                { hz: 500, labelShort: '500 Гц', labelFull: '500 Гц (2.0 мс)', note: 'Хорошо' },
+                { hz: 1000, labelShort: '1000 Гц', labelFull: '1000 Гц (1.0 мс • Pro)', note: 'Стандарт' },
+                { hz: 8000, labelShort: '8000 Гц', labelFull: '8000 Гц (0.125 мс)', note: 'Сверхплавно' },
               ].map((item) => (
                 <button
                   key={item.hz}
@@ -337,13 +338,15 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
                     setPollingRateHz(item.hz);
                     audio.playSoftClick(450 + item.hz * 0.05, 0.03);
                   }}
-                  className={`tap-spring px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all ${
+                  className={`tap-spring px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-mono font-bold border transition-all ${
                     pollingRateHz === item.hz
                       ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
+                  title={`${item.hz} Гц — ${item.note}`}
                 >
-                  {item.label}
+                  <span className="hidden sm:inline">{item.labelFull}</span>
+                  <span className="sm:hidden">{item.labelShort}</span>
                 </button>
               ))}
             </div>

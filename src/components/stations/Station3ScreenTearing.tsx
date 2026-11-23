@@ -213,7 +213,7 @@ export const Station3ScreenTearing: React.FC<Props> = ({ isActive = true }) => {
       </div>
 
       {/* Control Module */}
-      <div className="glass-panel p-5 rounded-2xl space-y-5">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-2xl space-y-5">
         <div>
           <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-2.5">
             Режим синхронизации кадрового буфера:

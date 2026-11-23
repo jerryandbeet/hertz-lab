@@ -96,14 +96,14 @@ export const DynamicIslandHUD: React.FC<Props> = ({
         aria-label="Живая телеметрия и навигация приложения Hertz"
         className="fixed top-3 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 pointer-events-auto max-w-[96vw]"
       >
-        <div className="glass-pill rounded-full px-3 py-1.5 sm:px-4 sm:py-2 flex items-center gap-2 sm:gap-3 shadow-hud border border-white/80">
+        <div className="glass-pill rounded-full px-2.5 py-1.5 sm:px-4 sm:py-2 flex items-center gap-1.5 sm:gap-3 shadow-hud border border-white/80">
           {/* Hertz Brand Badge / Home Button */}
           <button
             onClick={() => {
               onScrollToStation('hero');
               audio.playSoftClick(480, 0.03);
             }}
-            className="flex items-center gap-1.5 tap-spring focus:outline-hidden"
+            className="flex items-center gap-1.5 tap-spring focus:outline-hidden p-1"
             title="На главную (Титульный экран)"
           >
             <span className="relative flex h-2 w-2">
@@ -120,7 +120,7 @@ export const DynamicIslandHUD: React.FC<Props> = ({
           {/* Real-time FPS Badge */}
           <div className={`px-2 py-0.5 rounded-full border text-xs font-mono font-bold flex items-center gap-1 transition-colors ${getFpsColor()}`}>
             <Activity className="w-3 h-3" />
-            <span>{fps} FPS</span>
+            <span>{fps} <span className="hidden sm:inline">FPS</span></span>
           </div>
 
           {/* Frametime (Hidden on smallest mobile) */}
@@ -144,7 +144,7 @@ export const DynamicIslandHUD: React.FC<Props> = ({
               setShowModulesMenu(!showModulesMenu);
               audio.playSoftClick(500, 0.03);
             }}
-            className={`tap-spring flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold transition-all border ${
+            className={`tap-spring flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-mono font-bold transition-all border ${
               showModulesMenu
                 ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                 : 'bg-slate-100/90 hover:bg-slate-200/90 text-slate-800 border-slate-200/90'
@@ -153,11 +153,14 @@ export const DynamicIslandHUD: React.FC<Props> = ({
             aria-expanded={showModulesMenu}
           >
             <Layers className={`w-3.5 h-3.5 ${showModulesMenu ? 'text-white' : 'text-blue-600'}`} />
-            <span className="max-w-[140px] sm:max-w-[210px] truncate">
+            <span className="hidden sm:inline max-w-[210px] truncate">
               {activeStationId === 'hero' 
                 ? 'Модули лаборатории' 
                 : `0${currentStation?.index}. ${currentStation?.shortTitle}`
               }
+            </span>
+            <span className="sm:hidden font-mono text-[11px]">
+              {activeStationId === 'hero' ? 'Модули' : `0${currentStation?.index ?? 1}`}
             </span>
             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showModulesMenu ? 'rotate-180' : ''}`} />
           </button>
@@ -171,11 +174,11 @@ export const DynamicIslandHUD: React.FC<Props> = ({
               audio.playSoftClick(540, 0.04);
             }}
             title="Глобальная статистика: Онлайн и всего визитов"
-            className="tap-spring flex items-center gap-1.5 text-xs font-mono text-slate-600 hover:text-blue-600 bg-slate-100/80 hover:bg-blue-50/80 px-2 py-0.5 rounded-full border border-slate-200/70 transition-all"
+            className="tap-spring flex items-center gap-1 sm:gap-1.5 text-xs font-mono text-slate-600 hover:text-blue-600 bg-slate-100/80 hover:bg-blue-50/80 px-2 py-0.5 rounded-full border border-slate-200/70 transition-all"
           >
             <span className="flex items-center gap-1 text-emerald-600 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{liveStats.onlineUsers} онлайн</span>
+              <span>{liveStats.onlineUsers} <span className="hidden sm:inline">онлайн</span></span>
             </span>
             <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="hidden sm:inline-flex items-center gap-1 text-slate-500">
@@ -184,13 +187,13 @@ export const DynamicIslandHUD: React.FC<Props> = ({
             </span>
           </button>
 
-          {/* Keynote Presentation Fullscreen Toggle [F] */}
+          {/* Keynote Presentation Fullscreen Toggle [F] (Desktop Only) */}
           <button
             onClick={() => {
               onToggleFullscreen();
               audio.playSoftClick(580, 0.03);
             }}
-            className={`tap-spring p-1.5 rounded-full transition-all border flex items-center gap-1 ${
+            className={`tap-spring p-2 rounded-full transition-all border hidden sm:flex items-center gap-1 ${
               isFullscreen 
                 ? 'text-blue-700 bg-blue-100/80 border-blue-300 shadow-xs'
                 : 'text-slate-500 bg-slate-100/70 border-slate-200 hover:text-slate-800'
@@ -198,7 +201,7 @@ export const DynamicIslandHUD: React.FC<Props> = ({
             title="Полноэкранный режим [F]"
             aria-label="Полноэкранный режим"
           >
-            {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
 
           {/* Audio Mute Toggle Button */}
@@ -207,7 +210,7 @@ export const DynamicIslandHUD: React.FC<Props> = ({
               onToggleMute();
               audio.playSoftClick(550, 0.04);
             }}
-            className={`tap-spring p-1.5 rounded-full transition-all border ${
+            className={`tap-spring p-2 rounded-full transition-all border ${
               isMuted 
                 ? 'text-slate-400 bg-slate-100/70 border-slate-200' 
                 : 'text-blue-600 bg-blue-50/90 border-blue-200 shadow-xs'
@@ -215,7 +218,7 @@ export const DynamicIslandHUD: React.FC<Props> = ({
             title={isMuted ? "Включить звук" : "Выключить звук"}
             aria-label="Звук"
           >
-            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3 animate-pulse" />}
+            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 animate-pulse" />}
           </button>
         </div>
 
@@ -287,7 +290,7 @@ export const DynamicIslandHUD: React.FC<Props> = ({
           onClick={() => setShowStatsModal(false)}
         >
           <div 
-            className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200/90 space-y-5"
+            className="w-full max-w-lg bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-200/90 space-y-5 max-h-[88vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

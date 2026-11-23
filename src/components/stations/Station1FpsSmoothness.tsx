@@ -97,9 +97,9 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
       )}
 
       {/* Interactive Controls Bar */}
-      <div className="glass-panel p-5 rounded-2xl space-y-5">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-2xl space-y-4 sm:space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-bold text-slate-800">Пресеты:</span>
@@ -109,7 +109,7 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
             <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
               <button
                 onClick={() => { setMotionMode('rotate'); audio.playSwitchTone(false); }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold min-h-[36px] flex items-center transition-all ${
                   motionMode === 'rotate' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -117,7 +117,7 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
               </button>
               <button
                 onClick={() => { setMotionMode('sweep'); audio.playSwitchTone(true); }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold min-h-[36px] flex items-center transition-all ${
                   motionMode === 'sweep' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -126,14 +126,14 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {presets.map((p) => {
               const isSelected = activePreset === p.id;
               return (
                 <button
                   key={p.id}
                   onClick={() => applyPreset(p)}
-                  className={`tap-spring px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border ${
+                  className={`tap-spring px-3 py-2 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-semibold min-h-[36px] flex items-center transition-all border ${
                     isSelected
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50'
@@ -214,8 +214,11 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
         </div>
 
         {/* Speed Slider */}
-        <div className="pt-2 border-t border-slate-100 flex items-center gap-4">
-          <span className="text-xs font-medium text-slate-600 shrink-0">Скорость вращения 3D сцены:</span>
+        <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-600">
+            <span>Скорость вращения 3D сцены:</span>
+            <span className="sm:hidden font-mono text-slate-500">{speed.toFixed(1)}x</span>
+          </div>
           <input
             type="range"
             min="0.2"
@@ -227,14 +230,14 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
               setSpeed(val);
               audio.playSliderTick((val - 0.2) / 2.3);
             }}
-            className="flex-1"
+            className="flex-1 w-full"
           />
-          <span className="text-xs font-mono text-slate-500 w-10 text-right">{speed.toFixed(1)}x</span>
+          <span className="hidden sm:inline-block text-xs font-mono text-slate-500 w-10 text-right">{speed.toFixed(1)}x</span>
         </div>
       </div>
 
       {/* Acoustic Frequency Hum Module (Услышать герцы ушами) */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-200/90 space-y-3">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-2xl border border-slate-200/90 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Radio className="w-4 h-4 text-purple-600" />

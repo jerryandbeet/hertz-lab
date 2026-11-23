@@ -41,7 +41,7 @@ export const HeroScreen: React.FC<Props> = ({ onScrollToStation, isActive = true
         </div>
 
         {/* Main Title */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.08]">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1]">
           Анатомия кадровой частоты,{' '}
           <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent">
             плавности и отклика
@@ -49,8 +49,8 @@ export const HeroScreen: React.FC<Props> = ({ onScrollToStation, isActive = true
         </h1>
 
         {/* Academic Slogan Quote Card (Approved Option A) */}
-        <div className="w-full max-w-3xl glass-panel p-6 sm:p-7 rounded-3xl border border-blue-200/70 shadow-glass text-center space-y-3 relative overflow-hidden backdrop-blur-lg bg-white/80">
-          <div className="text-lg sm:text-xl md:text-2xl font-serif italic text-slate-800 font-medium leading-relaxed">
+        <div className="w-full max-w-3xl glass-panel p-5 sm:p-7 rounded-3xl border border-blue-200/70 shadow-glass text-center space-y-3 relative overflow-hidden backdrop-blur-lg bg-white/80">
+          <div className="text-base sm:text-xl md:text-2xl font-serif italic text-slate-800 font-medium leading-relaxed">
             «Истинная плавность — не в абстрактных цифрах FPS, а во времени доставки каждого фотона на сетчатку глаза.»
           </div>
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto"></div>
@@ -78,8 +78,8 @@ export const HeroScreen: React.FC<Props> = ({ onScrollToStation, isActive = true
             Jelly Input Lag
           </span>
           <span className="px-3 py-1 rounded-full bg-white/80 border border-slate-200/80 shadow-xs flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-            DLSS Frame Gen
+            <Gauge className="w-3.5 h-3.5 text-emerald-500" />
+            Hz Тест & Бенчмарк
           </span>
         </div>
 

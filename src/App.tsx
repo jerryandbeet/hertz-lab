@@ -141,7 +141,7 @@ export default function App() {
       <main className="w-full max-w-6xl mx-auto px-4 space-y-24 pb-28">
         {/* Station 01 */}
         <section id="station-fps" className="scroll-mt-36">
-          <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-glass border border-slate-200/80">
+          <div className="glass-panel p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-slate-200/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/70 pb-5 mb-6 gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ export default function App() {
 
         {/* Station 02 */}
         <section id="station-blur" className="scroll-mt-36">
-          <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-glass border border-slate-200/80">
+          <div className="glass-panel p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-slate-200/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/70 pb-5 mb-6 gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export default function App() {
 
         {/* Station 03 */}
         <section id="station-tearing" className="scroll-mt-36">
-          <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-glass border border-slate-200/80">
+          <div className="glass-panel p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-slate-200/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/70 pb-5 mb-6 gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function App() {
 
         {/* Station 04 */}
         <section id="station-pacing" className="scroll-mt-36">
-          <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-glass border border-slate-200/80">
+          <div className="glass-panel p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-slate-200/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/70 pb-5 mb-6 gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function App() {
 
         {/* Station 05 */}
         <section id="station-input-lag" className="scroll-mt-36">
-          <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-glass border border-slate-200/80">
+          <div className="glass-panel p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-slate-200/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/70 pb-5 mb-6 gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -291,7 +291,7 @@ export default function App() {
 
         {/* Station 06 */}
         <section id="station-sandbox" className="scroll-mt-36">
-          <div className="glass-panel p-5 sm:p-8 rounded-3xl shadow-glass border border-slate-200/80">
+          <div className="glass-panel p-3.5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-slate-200/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/70 pb-5 mb-6 gap-3">
               <div>
                 <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function App() {
               <ArrowUp className="w-3.5 h-3.5" />
               <span>Наверх</span>
             </button>
-            <span>[F] Полноэкранный режим Keynote</span>
+            <span className="hidden sm:inline">[F] Полноэкранный режим Keynote</span>
           </div>
         </div>
       </footer>

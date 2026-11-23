@@ -269,7 +269,7 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
       </div>
 
       {/* Interactive Controls Bar */}
-      <div className="glass-panel p-5 rounded-2xl space-y-5">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-2xl space-y-5">
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-slate-800">
             <Layers className="w-4 h-4 text-blue-600" />

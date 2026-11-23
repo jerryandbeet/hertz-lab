@@ -162,8 +162,8 @@ export const StationNavigation: React.FC<Props> = ({
                 >
                   {getIcon(station.iconName, isActive)}
                   <span className="hidden md:inline">{station.shortTitle}</span>
-                  <span className="md:hidden">М{station.index}</span>
-                  <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                  <span className="md:hidden font-mono font-bold text-xs">0{station.index}</span>
+                  <span className={`hidden md:inline-block text-[10px] font-mono px-1 py-0.5 rounded ${
                     isActive ? 'bg-blue-50 text-blue-600' : 'text-slate-400 bg-slate-100'
                   }`}>
                     0{station.index}

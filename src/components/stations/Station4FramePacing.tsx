@@ -254,29 +254,31 @@ export const Station4FramePacing: React.FC<Props> = ({ isActive = true }) => {
           className="w-full h-[250px] sm:h-[280px] rounded-xl block border border-slate-200 bg-white"
         />
 
-        {/* Live HUD Badges */}
-        <div className="absolute top-6 left-6 flex flex-wrap gap-2 pointer-events-none">
-          <span className="glass-pill px-3 py-1 rounded-lg text-xs font-mono font-bold text-slate-800 shadow-sm border border-slate-200">
-            Каденция: <strong className={pacingMode === 'stable' ? 'text-emerald-600' : 'text-amber-600'}>
-              {pacingMode === 'stable' ? 'ИДЕАЛЬНЫЙ ТАКТ (16.6ms)' : 'НЕРАВНОМЕРНЫЙ (ERRATIC)'}
-            </strong>
-          </span>
-        </div>
+        {/* Live HUD Badges & Action (Responsive top bar) */}
+        <div className="absolute top-3 left-3 right-3 sm:top-6 sm:left-6 sm:right-6 flex flex-wrap items-center justify-between gap-2 z-10">
+          <div className="pointer-events-none">
+            <span className="glass-pill px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg text-[11px] sm:text-xs font-mono font-bold text-slate-800 shadow-sm border border-slate-200">
+              <span className="hidden sm:inline">Каденция: </span>
+              <strong className={pacingMode === 'stable' ? 'text-emerald-600' : 'text-amber-600'}>
+                {pacingMode === 'stable' ? '16.6ms ТАКТ' : 'НЕРАВНОМЕРНЫЙ'}
+              </strong>
+            </span>
+          </div>
 
-        {/* Inject Spike Action Button */}
-        <div className="absolute top-6 right-6">
-          <button
-            onClick={triggerSpike}
-            disabled={injectedSpike}
-            className={`tap-spring px-3.5 py-1.5 rounded-xl text-xs font-bold border shadow-sm flex items-center gap-1.5 transition-all ${
-              injectedSpike
-                ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
-                : 'bg-white hover:bg-rose-50 text-rose-600 border-rose-200'
-            }`}
-          >
-            <AlertOctagon className="w-3.5 h-3.5" />
-            Инжектировать микрофриз (+200ms)
-          </button>
+          <div>
+            <button
+              onClick={triggerSpike}
+              disabled={injectedSpike}
+              className={`tap-spring px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-bold border shadow-sm flex items-center gap-1.5 transition-all ${
+                injectedSpike
+                  ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
+                  : 'bg-white/95 hover:bg-rose-50 text-rose-600 border-rose-200'
+              }`}
+            >
+              <AlertOctagon className="w-3.5 h-3.5" />
+              <span>Микрофриз (+200ms)</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -317,15 +319,15 @@ export const Station4FramePacing: React.FC<Props> = ({ isActive = true }) => {
       </div>
 
       {/* Mode Selector */}
-      <div className="glass-panel p-4 rounded-xl border border-slate-200/90 flex flex-wrap items-center justify-between gap-3">
+      <div className="glass-panel p-3.5 sm:p-4 rounded-xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <span className="text-xs font-semibold text-slate-700">Сравнение равномерности подачи кадров:</span>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button
             onClick={() => {
               setPacingMode('stable');
               audio.playSwitchTone(true);
             }}
-            className={`tap-spring px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+            className={`tap-spring px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-semibold border text-center transition-all ${
               pacingMode === 'stable'
                 ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -338,7 +340,7 @@ export const Station4FramePacing: React.FC<Props> = ({ isActive = true }) => {
               setPacingMode('erratic');
               audio.playSwitchTone(false);
             }}
-            className={`tap-spring px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+            className={`tap-spring px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-semibold border text-center transition-all ${
               pacingMode === 'erratic'
                 ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'

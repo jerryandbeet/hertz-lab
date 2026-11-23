@@ -365,7 +365,7 @@ export const Station7BenchmarkSandbox: React.FC<Props> = ({ isActive = true, onC
       {/* Certificate Modal */}
       {showCertificate && scanResult && (
         <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/90 shadow-2xl max-w-lg w-full bg-white relative animate-fadeIn pointer-events-auto">
+          <div className="glass-panel p-5 sm:p-8 rounded-3xl border border-white/90 shadow-2xl max-w-lg w-full bg-white relative animate-fadeIn pointer-events-auto max-h-[88vh] overflow-y-auto">
             <button
               onClick={() => setShowCertificate(false)}
               className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"

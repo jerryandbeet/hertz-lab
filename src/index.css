@@ -17,6 +17,16 @@ body {
   background-position: 0 0, 12px 12px;
 }
 
+/* Prevent horizontal overflow on mobile body */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+canvas {
+  touch-action: pan-y;
+}
+
 /* Apple & Emil Kowalski Fluid tactile interactions */
 button, input[type="range"], a, [role="button"] {
   touch-action: manipulation;
