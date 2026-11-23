@@ -233,22 +233,33 @@ class AudioService {
     } catch {}
   }
 
-  public startContinuousHum(hz: number) {
+  public startContinuousHum(hz: number, forceUnmute = false) {
+    if (forceUnmute && this.isMuted) {
+      this.isMuted = false;
+      try {
+        localStorage.setItem('fps_lab_muted', 'false');
+      } catch {}
+    }
     if (this.isMuted) return;
     try {
       this.initContext();
       if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
 
       this.stopContinuousHum();
 
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      const audibleFreq = hz < 40 ? 60 : hz;
-      osc.frequency.setValueAtTime(audibleFreq, this.ctx.currentTime);
+      // Triangle wave retains exact fundamental frequency (30/60/120 Hz) while producing
+      // the rich physical harmonics audible through mobile/iPhone micro-speakers
+      osc.type = hz <= 60 ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(hz, this.ctx.currentTime);
 
       gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + 0.1);
+      gain.gain.linearRampToValueAtTime(0.12, this.ctx.currentTime + 0.05);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);

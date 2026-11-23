@@ -44,7 +44,7 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
       audio.stopContinuousHum();
       setAcousticActive(false);
     } else {
-      audio.startContinuousHum(hz);
+      audio.startContinuousHum(hz, true);
       setAcousticHz(hz);
       setAcousticActive(true);
     }
@@ -52,11 +52,11 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
 
   // Auto-mute acoustic hum when station is offscreen or tab is hidden
   useEffect(() => {
-    if ((!isActive || isPaused) && acousticActive) {
+    if (isPaused && acousticActive) {
       audio.stopContinuousHum();
       setAcousticActive(false);
     }
-  }, [isActive, isPaused, acousticActive]);
+  }, [isPaused, acousticActive]);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -82,7 +82,7 @@ export const Station1FpsSmoothness: React.FC<Props> = ({ isActive = true, calibr
         speed={speed}
         motionMode={motionMode}
         showMarkers={true}
-        isActive={isActive && !isPaused}
+        isActive={!isPaused}
         onSplitChange={setSplitPos}
       />
 

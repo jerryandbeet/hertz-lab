@@ -227,10 +227,18 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
             Зона 1: Тактильный тренажер задержки ввода (Jelly Cursor)
           </label>
           <div className="flex items-center gap-3 text-xs font-mono text-slate-500">
-            <span>Опрос мыши: <strong className="text-purple-600">{pollingRateHz} Гц</strong></span>
+            <span>Опрос сенсора/мыши: <strong className="text-purple-600">{pollingRateHz} Гц</strong></span>
             <span>•</span>
             <span>Задержка: <strong className="text-blue-600">{lagDelayMs} мс</strong></span>
           </div>
+        </div>
+
+        {/* Clean explanatory helper banner outside the interactive arena */}
+        <div className="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex items-center gap-2 shadow-xs">
+          <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+          <span>
+            Ведите пальцем или курсором внутри зоны. Серый маркер — мгновенная позиция касания, синий прицел — запаздывающий кадр рендера (<strong className="text-blue-600 font-mono">{lagDelayMs} мс</strong>).
+          </span>
         </div>
 
         <div
@@ -276,15 +284,6 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
               <div className="absolute -bottom-2 w-0.5 h-2 bg-blue-600"></div>
               <div className="absolute -left-2 w-2 h-0.5 bg-blue-600"></div>
               <div className="absolute -right-2 w-2 h-0.5 bg-blue-600"></div>
-            </div>
-          </div>
-
-          <div className="z-10 text-center pointer-events-none px-4">
-            <div className="text-sm font-bold text-slate-700">
-              Двигайте курсором мыши внутри этой зоны
-            </div>
-            <div className="text-xs text-slate-400 mt-1 max-w-md">
-              Серый маркер — реальное физическое положение вашей руки. Синий прицел — кадр игры с задержкой <span className="font-mono font-bold text-blue-600">{lagDelayMs} мс</span> и частотой опроса <span className="font-mono font-bold text-purple-600">{pollingRateHz} Гц</span>.
             </div>
           </div>
         </div>

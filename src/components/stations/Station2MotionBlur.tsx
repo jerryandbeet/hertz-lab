@@ -102,7 +102,7 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
       ctx.lineTo(w, h / 2);
       ctx.stroke();
 
-      // Target Renderer Function
+      // Space Shuttle Renderer Function
       const drawObject = (
         x: number, 
         y: number, 
@@ -115,46 +115,147 @@ export const Station2MotionBlur: React.FC<Props> = ({ isActive = true, calibrate
 
         // If simulated blur is active, apply horizontal shadow/blur
         if (!isSharp && blurPx > 0) {
-          ctx.shadowColor = 'rgba(37, 99, 235, 0.45)';
+          ctx.shadowColor = 'rgba(37, 99, 235, 0.5)';
           ctx.shadowBlur = blurPx;
         }
 
-        // Space Shuttle / UFO Body
-        ctx.fillStyle = isSharp ? '#059669' : '#2563eb';
+        // --- Rocket Exhaust Plume (Left of tail) ---
+        const plumeColor = isSharp ? 'rgba(16, 185, 129, 0.85)' : 'rgba(59, 130, 246, 0.85)';
+        const plumeLength = 32 + (isSharp ? Math.random() * 6 : 4);
+        
+        ctx.fillStyle = plumeColor;
+        // Top thruster plume
         ctx.beginPath();
-        ctx.ellipse(x, y - 6, 40, 14, 0, 0, Math.PI * 2);
+        ctx.moveTo(x - 52, y - 8);
+        ctx.lineTo(x - 52 - plumeLength, y - 8);
+        ctx.lineTo(x - 52, y - 4);
+        ctx.closePath();
         ctx.fill();
 
-        // Cockpit Glass
-        ctx.fillStyle = isSharp ? '#a7f3d0' : '#bae6fd';
+        // Center main thruster plume (larger)
+        ctx.fillStyle = isSharp ? '#34d399' : '#93c5fd';
         ctx.beginPath();
-        ctx.ellipse(x, y - 12, 20, 10, 0, Math.PI, 0);
+        ctx.moveTo(x - 52, y - 3);
+        ctx.lineTo(x - 52 - plumeLength * 1.3, y);
+        ctx.lineTo(x - 52, y + 3);
+        ctx.closePath();
         ctx.fill();
 
-        // High frequency lights
-        for (let i = -3; i <= 3; i++) {
-          ctx.fillStyle = i % 2 === 0 ? '#fef08a' : '#f59e0b';
-          ctx.beginPath();
-          ctx.arc(x + i * 11, y - 4, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        // Bottom thruster plume
+        ctx.fillStyle = plumeColor;
+        ctx.beginPath();
+        ctx.moveTo(x - 52, y + 4);
+        ctx.lineTo(x - 52 - plumeLength, y + 8);
+        ctx.lineTo(x - 52, y + 8);
+        ctx.closePath();
+        ctx.fill();
 
-        // Test Text: Dynamic Hardware Hz
-        ctx.fillStyle = isSharp ? '#064e3b' : '#0f172a';
-        ctx.font = 'bold 13px ui-monospace, SFMono-Regular, monospace';
+        // --- Delta Wings (Top & Bottom Wingtips) ---
+        // Upper Wing
+        ctx.fillStyle = isSharp ? '#047857' : '#1e3a8a';
+        ctx.beginPath();
+        ctx.moveTo(x - 20, y - 10);
+        ctx.lineTo(x - 48, y - 36); // Wingtip rear
+        ctx.lineTo(x - 44, y - 38);
+        ctx.lineTo(x + 10, y - 12); // Wing root front
+        ctx.closePath();
+        ctx.fill();
+
+        // Lower Wing
+        ctx.beginPath();
+        ctx.moveTo(x - 20, y + 10);
+        ctx.lineTo(x - 48, y + 36); // Wingtip rear
+        ctx.lineTo(x - 44, y + 38);
+        ctx.lineTo(x + 10, y + 12); // Wing root front
+        ctx.closePath();
+        ctx.fill();
+
+        // Black thermal tile leading edge on wings
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(x + 10, y - 12);
+        ctx.lineTo(x - 44, y - 38);
+        ctx.lineTo(x - 40, y - 36);
+        ctx.lineTo(x + 6, y - 10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(x + 10, y + 12);
+        ctx.lineTo(x - 44, y + 38);
+        ctx.lineTo(x - 40, y + 36);
+        ctx.lineTo(x + 6, y + 10);
+        ctx.closePath();
+        ctx.fill();
+
+        // Wingtip navigation lights
+        ctx.fillStyle = '#ef4444'; // Red (Port)
+        ctx.beginPath();
+        ctx.arc(x - 46, y - 37, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#10b981'; // Green (Starboard)
+        ctx.beginPath();
+        ctx.arc(x - 46, y + 37, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // --- Main Shuttle Fuselage ---
+        ctx.fillStyle = isSharp ? '#f8fafc' : '#f1f5f9';
+        ctx.beginPath();
+        ctx.moveTo(x + 55, y); // Nose tip
+        ctx.bezierCurveTo(x + 40, y - 11, x + 15, y - 14, x - 50, y - 14); // Upper fuselage
+        ctx.lineTo(x - 52, y + 14); // Aft engine mount
+        ctx.bezierCurveTo(x + 15, y + 14, x + 40, y + 11, x + 55, y); // Lower fuselage
+        ctx.closePath();
+        ctx.fill();
+
+        // Outline / trim
+        ctx.strokeStyle = isSharp ? '#059669' : '#2563eb';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Black thermal protection nose cap
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(x + 55, y);
+        ctx.bezierCurveTo(x + 48, y - 5, x + 44, y - 7, x + 40, y - 7);
+        ctx.lineTo(x + 40, y + 7);
+        ctx.bezierCurveTo(x + 44, y + 7, x + 48, y + 5, x + 55, y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Cockpit cabin windshield (Dark glass panels)
+        ctx.fillStyle = isSharp ? '#6ee7b7' : '#38bdf8';
+        ctx.beginPath();
+        ctx.moveTo(x + 36, y - 2);
+        ctx.lineTo(x + 30, y - 6);
+        ctx.lineTo(x + 28, y - 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x + 36, y + 2);
+        ctx.lineTo(x + 30, y + 6);
+        ctx.lineTo(x + 28, y + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Rocket engine nozzles (SSME)
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(x - 55, y - 10, 5, 5);
+        ctx.fillRect(x - 56, y - 3, 6, 6);
+        ctx.fillRect(x - 55, y + 5, 5, 5);
+
+        // High-contrast test markings on fuselage: HERTZ • SHUTTLE
+        ctx.fillStyle = isSharp ? '#064e3b' : '#1e3a8a';
+        ctx.font = 'bold 9px ui-monospace, SFMono-Regular, monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`HERTZ ${state.calibratedHz}Hz LAB`, x, y + 24);
+        ctx.fillText('HERTZ SHUTTLE', x - 5, y + 3);
 
-        // Subtext
-        ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
-        ctx.fillStyle = isSharp ? '#047857' : '#475569';
-        ctx.fillText(isSharp ? 'ЧЕТКИЙ СТРОБ • BFI ON' : 'СМАЗ СЕТЧАТКИ • SAMPLE-AND-HOLD', x, y + 38);
-
-        // High frequency vertical bars
-        const barY = y + 46;
-        for (let b = -12; b <= 12; b++) {
-          ctx.fillStyle = (b + 12) % 2 === 0 ? (isSharp ? '#065f46' : '#1e293b') : '#e2e8f0';
-          ctx.fillRect(x + b * 4, barY, 3, 8);
+        // High frequency micro-bars on payload bay (for instant optical blur detection)
+        const barY = y - 9;
+        for (let b = -7; b <= 7; b++) {
+          ctx.fillStyle = b % 2 === 0 ? (isSharp ? '#047857' : '#1d4ed8') : '#cbd5e1';
+          ctx.fillRect(x + b * 4, barY, 2.5, 3);
         }
 
         ctx.restore();

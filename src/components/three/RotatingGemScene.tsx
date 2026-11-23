@@ -154,12 +154,14 @@ export const RotatingGemScene: React.FC<Props> = ({
     window.addEventListener('resize', handleResize);
 
     let animId: number;
+    let hasRendered = false;
 
     const renderLoop = (now: number) => {
-      if (!stateRef.current.isActive) {
+      if (!stateRef.current.isActive && hasRendered) {
         animId = requestAnimationFrame(renderLoop);
         return;
       }
+      hasRendered = true;
 
       const { fpsLeft, fpsRight, splitPos, speed, motionMode } = stateRef.current;
 
@@ -218,9 +220,18 @@ export const RotatingGemScene: React.FC<Props> = ({
       // --- 2D Real-time Synchronized UFO Track Rendering ---
       const ufoCanvas = ufoCanvasRef.current;
       if (ufoCanvas) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const parentW = ufoCanvas.parentElement?.clientWidth || 320;
+        const parentH = ufoCanvas.parentElement?.clientHeight || 76;
+        const targetW = Math.round(parentW * dpr);
+        const targetH = Math.round(parentH * dpr);
+        if (ufoCanvas.width !== targetW || ufoCanvas.height !== targetH) {
+          ufoCanvas.width = targetW;
+          ufoCanvas.height = targetH;
+        }
+
         const uctx = ufoCanvas.getContext('2d');
         if (uctx) {
-          const dpr = window.devicePixelRatio || 1;
           const cw = ufoCanvas.width / dpr;
           const ch = ufoCanvas.height / dpr;
 
