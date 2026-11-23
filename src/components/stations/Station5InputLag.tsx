@@ -70,15 +70,11 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
     const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
 
     if (ghostRef.current) {
-      ghostRef.current.style.left = '0px';
-      ghostRef.current.style.top = '0px';
       ghostRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
       ghostRef.current.style.opacity = '1';
     }
 
-    if (cursorRef.current && cursorRef.current.style.opacity === '0') {
-      cursorRef.current.style.left = '0px';
-      cursorRef.current.style.top = '0px';
+    if (cursorRef.current) {
       cursorRef.current.style.opacity = '1';
     }
 
@@ -97,7 +93,7 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
     let animId: number;
 
     const updateLaggedCursor = () => {
-      if (!isActiveRef.current || isPaused) {
+      if (isPaused) {
         animId = requestAnimationFrame(updateLaggedCursor);
         return;
       }
@@ -265,8 +261,8 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
           {/* Instant ghost position (your actual hardware hand movement) */}
           <div
             ref={ghostRef}
-            className="absolute left-1/2 top-1/2 pointer-events-none opacity-40 transition-opacity duration-150 z-10"
-            style={{ willChange: 'transform', transform: 'translate(-50%, -50%)' }}
+            className="absolute top-0 left-0 pointer-events-none opacity-0 transition-opacity duration-150 z-10"
+            style={{ willChange: 'transform', transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)' }}
           >
             <div className="w-3.5 h-3.5 rounded-full bg-slate-500/80 border border-slate-700/50 shadow-xs"></div>
           </div>
@@ -274,8 +270,8 @@ export const Station5InputLag: React.FC<Props> = ({ isActive = true }) => {
           {/* Delayed Gaming Crosshair */}
           <div
             ref={cursorRef}
-            className="absolute left-1/2 top-1/2 pointer-events-none opacity-85 transition-opacity duration-150 z-20"
-            style={{ willChange: 'transform', transform: 'translate(-50%, -50%)' }}
+            className="absolute top-0 left-0 pointer-events-none opacity-0 transition-opacity duration-150 z-20"
+            style={{ willChange: 'transform', transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)' }}
           >
             <div className="relative flex items-center justify-center">
               <div className="w-8 h-8 rounded-full border-2 border-blue-600/90 shadow-md"></div>
